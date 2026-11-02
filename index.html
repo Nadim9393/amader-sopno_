@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমাদের স্বপ্ন | Amader Sopno</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f8fafc; color: #0f172a; padding-bottom: 60px; }
+        
+        header { background: #ffffff; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        header h1 { color: #2563eb; font-size: 28px; font-weight: 700; }
+        header p { color: #64748b; font-size: 14px; margin-top: 4px; }
+        
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .section-title { font-size: 20px; margin-bottom: 20px; color: #334155; border-left: 4px solid #2563eb; padding-left: 10px; }
+        
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .product-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .product-img { width: 100%; height: 200px; object-fit: cover; background: #f1f5f9; }
+        .product-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .product-title { font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+        .product-desc { font-size: 13px; color: #64748b; margin-bottom: 12px; flex-grow: 1; }
+        .product-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .price { font-size: 18px; font-weight: 700; color: #2563eb; }
+        .btn-order { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .btn-order:hover { background: #1d4ed8; }
+
+        /* Modal / Order Form */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: #fff; padding: 25px; border-radius: 12px; max-width: 450px; width: 100%; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: #64748b; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 14px; }
+        .btn-submit { width: 100%; background: #16a34a; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; }
+        .btn-submit:hover { background: #15803d; }
+        #statusMsg { margin-top: 10px; text-align: center; font-weight: 600; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>আমাদের স্বপ্ন</h1>
+    <p>আপনার আস্থার নির্ভরযোগ্য অনলাইন শপ</p>
+</header>
+
+<div class="container">
+    <h2 class="section-title">আমাদের পণ্যসমূহ</h2>
+    <div id="productsGrid" class="products-grid">
+        <p>পণ্য লোড হচ্ছে...</p>
+    </div>
+</div>
+
+<!-- Order Modal -->
+<div id="orderModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 style="margin-bottom: 15px; color: #0f172a;">অর্ডার বিবরণ নিশ্চিত করুন</h3>
+        <form id="checkoutForm">
+            <input type="hidden" id="selectedProduct">
+            <input type="hidden" id="selectedPrice">
+            
+            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;">
+                <strong>পণ্য:</strong> <span id="displayProductName"></span><br>
+                <strong>মূল্য:</strong> <span id="displayProductPrice"></span> ৳
+            </div>
+
+            <div class="form-group">
+                <label>আপনার নাম</label>
+                <input type="text" id="custName" required placeholder="পুরো নাম লিখুন">
+            </div>
+            <div class="form-group">
+                <label>মোবাইল নম্বর</label>
+                <input type="tel" id="custPhone" required placeholder="017XXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>সম্পূর্ণ ঠিকানা</label>
+                <textarea id="custAddress" rows="3" required placeholder="জেলা, থানা ও এলাকার নাম"></textarea>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn-submit">অর্ডার কনফার্ম করুন</button>
+            <div id="statusMsg"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Apnar Google Apps Script Web App URL ekhane sothikbhave bosano royeche
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYTxxkApSRUMcRMWm8_zlqeedah6kwV8frKD5E5YgUP0WTVcZaGmGJszKjteE4EpR02w/exec";
+
+    // Google sheet theke product load korar function
+    async function fetchProducts() {
+        try {
+            let res = await fetch(SCRIPT_URL);
+            let products = await res.json();
+            let grid = document.getElementById('productsGrid');
+            grid.innerHTML = "";
+
+            if(products.length === 0) {
+                grid.innerHTML = "<p>কোনো পণ্য পাওয়া যায়নি।</p>";
+                return;
+            }
+
+            products.forEach(p => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <img src="${p.imageUrl || 'https://via.placeholder.com/300'}" class="product-img" alt="${p.productName}">
+                        <div class="product-info">
+                            <div class="product-title">${p.productName}</div>
+                            <div class="product-desc">${p.description || ''}</div>
+                            <div class="product-bottom">
+                                <div class="price">${p.price} ৳</div>
+                                <button class="btn-order" onclick="openModal('${p.productName}', ${p.price})">অর্ডার করুন</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (err) {
+            document.getElementById('productsGrid').innerHTML = "<p style='color:red;'>পণ্য লোড করতে সমস্যা হয়েছে।</p>";
+        }
+    }
+
+    function openModal(name, price) {
+        document.getElementById('selectedProduct').value = name;
+        document.getElementById('selectedPrice').value = price;
+        document.getElementById('displayProductName').innerText = name;
+        document.getElementById('displayProductPrice').innerText = price;
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('orderModal').style.display = 'none';
+        document.getElementById('statusMsg').innerText = "";
+    }
+
+    // Order submit korar function
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "প্রসেসিং হচ্ছে...";
+
+        const payload = {
+            customerName: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value,
+            address: document.getElementById('custAddress').value,
+            orderedItems: document.getElementById('selectedProduct').value,
+            totalAmount: document.getElementById('selectedPrice').value
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            statusMsg.style.color = "green";
+            statusMsg.innerText = "অর্ডারটি সফলভাবে জমা হয়েছে!";
+            document.getElementById('checkoutForm').reset();
+            setTimeout(closeModal, 2000);
+        })
+        .catch(() => {
+            statusMsg.style.color = "red";
+            statusMsg.innerText = "সমস্যা হয়েছে, আবার চেষ্টা করুন।";
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "অর্ডার কনফার্ম করুন";
+        });
+    });
+
+    fetchProducts();
+</script>
+
+</body>
+</html>
